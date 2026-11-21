@@ -3,315 +3,271 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>AI Student Academic Performance Prediction</title>
-
-  <!-- Bootstrap (styling only) -->
-  <link
-    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
-    rel="stylesheet"
-    integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
-    crossorigin="anonymous"
-  />
-
-  <!-- App CSS (Flask static) -->
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
-
-  <!-- Bootstrap Icons (optional) -->
-  <link
-    rel="stylesheet"
-    href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
-  />
-
-  <!-- Chart.js -->
+  <meta name="theme-color" content="#0b1020" />
+  <title>StudentIQ | Academic Performance Predictor</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
-
+  <style>
+    :root {
+      --bg: #0b1020; --panel: rgba(19, 27, 49, .88); --panel2: #151f38;
+      --line: rgba(163, 180, 220, .14); --text: #f4f7ff; --muted: #9aa8c7;
+      --blue: #7c9cff; --cyan: #64e2d2; --purple: #a78bfa;
+      --shadow: 0 24px 70px rgba(0,0,0,.28);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; min-height: 100vh; color: var(--text);
+      font-family: "DM Sans", sans-serif;
+      background:
+        radial-gradient(ellipse at 12% 5%, rgba(83,112,224,.22), transparent 34%),
+        radial-gradient(ellipse at 88% 18%, rgba(65,208,192,.13), transparent 28%),
+        var(--bg);
+    }
+    button, input { font: inherit; }
+    .page { width: min(1180px, calc(100% - 36px)); margin: auto; padding: 30px 0 52px; }
+    .topbar { display:flex; justify-content:space-between; align-items:center; gap:16px; margin-bottom:38px; }
+    .brand { display:flex; align-items:center; gap:12px; font-family:Manrope,sans-serif; font-weight:800; letter-spacing:-.5px; }
+    .brand-mark { width:42px; height:42px; display:grid; place-items:center; border-radius:14px; color:#091322; background:linear-gradient(135deg,var(--cyan),var(--blue)); font-size:20px; }
+    .brand small { display:block; color:var(--muted); font:500 11px "DM Sans",sans-serif; letter-spacing:1.6px; text-transform:uppercase; margin-top:2px; }
+    .status { display:flex; align-items:center; gap:8px; color:#b8c5df; font-size:12px; padding:9px 13px; border:1px solid var(--line); border-radius:999px; background:rgba(255,255,255,.035); }
+    .status-dot { width:7px; height:7px; border-radius:50%; background:var(--cyan); box-shadow:0 0 12px var(--cyan); }
+    .hero { margin-bottom:28px; max-width:760px; }
+    .eyebrow { color:var(--cyan); text-transform:uppercase; letter-spacing:2px; font-size:11px; font-weight:700; }
+    h1 { font:800 clamp(30px,5vw,48px)/1.12 Manrope,sans-serif; letter-spacing:-1.8px; margin:12px 0 13px; }
+    .hero p { color:var(--muted); line-height:1.7; margin:0; max-width:650px; }
+    .layout { display:grid; grid-template-columns:minmax(0, .95fr) minmax(0, 1.05fr); gap:20px; align-items:start; }
+    .panel { background:var(--panel); border:1px solid var(--line); border-radius:22px; box-shadow:var(--shadow); backdrop-filter:blur(16px); }
+    .panel-head { padding:23px 24px 0; }
+    .panel-title { display:flex; align-items:center; gap:10px; font:700 17px Manrope,sans-serif; margin:0; }
+    .panel-title i { color:var(--cyan); font-size:18px; }
+    .panel-subtitle { color:var(--muted); font-size:12px; margin:7px 0 0; line-height:1.5; }
+    .form-body { padding:22px 24px 24px; }
+    .fields { display:grid; grid-template-columns:1fr 1fr; gap:17px 14px; }
+    .field label { display:flex; justify-content:space-between; gap:8px; color:#dce5fa; font-size:12px; font-weight:600; margin-bottom:8px; }
+    .field label span { color:var(--muted); font-size:10px; font-weight:400; }
+    .input-wrap { position:relative; }
+    .input-wrap i { position:absolute; left:13px; top:50%; transform:translateY(-50%); color:#8293b9; }
+    .field input { width:100%; color:var(--text); background:#0d1529; border:1px solid rgba(153,174,221,.19); border-radius:12px; padding:13px 13px 13px 39px; outline:none; transition:.2s; }
+    .field input:focus { border-color:var(--blue); box-shadow:0 0 0 3px rgba(124,156,255,.13); }
+    .field input::placeholder { color:#657493; }
+    .field input:invalid:not(:placeholder-shown) { border-color:#fb7185; }
+    .form-note { display:flex; align-items:flex-start; gap:8px; color:var(--muted); font-size:11px; line-height:1.5; margin:19px 0; }
+    .form-note i { color:var(--cyan); margin-top:1px; }
+    .submit { width:100%; border:0; border-radius:12px; padding:14px 18px; color:#071323; font-weight:800; cursor:pointer; background:linear-gradient(100deg,var(--cyan),#91b4ff); box-shadow:0 9px 24px rgba(100,226,210,.13); transition:transform .2s,filter .2s; }
+    .submit:hover { transform:translateY(-2px); filter:brightness(1.06); }
+    .submit:disabled { opacity:.7; cursor:wait; transform:none; }
+    .loading { display:none; color:var(--muted); text-align:center; font-size:12px; margin-top:12px; }
+    .loading.show { display:block; }
+    .right-col { display:grid; gap:20px; }
+    .empty-state { min-height:260px; display:grid; place-items:center; text-align:center; padding:30px; }
+    .empty-icon { width:64px; height:64px; border-radius:20px; display:grid; place-items:center; margin:0 auto 15px; color:var(--cyan); background:rgba(100,226,210,.09); font-size:27px; }
+    .empty-state h3 { font:700 16px Manrope,sans-serif; margin:0 0 7px; }
+    .empty-state p { max-width:280px; color:var(--muted); font-size:12px; line-height:1.6; margin:0; }
+    .results-content { padding:21px 24px 24px; }
+    .alert { border-radius:12px; padding:12px 14px; margin-bottom:16px; font-size:12px; }
+    .alert-danger { color:#fecdd3; background:rgba(244,63,94,.12); border:1px solid rgba(244,63,94,.25); }
+    .metrics { display:grid; grid-template-columns:1fr 1fr; gap:13px; }
+    .metric-card { background:linear-gradient(145deg,rgba(124,156,255,.12),rgba(100,226,210,.055)); border:1px solid var(--line); border-radius:16px; padding:18px; }
+    .metric-label { color:var(--muted); font-size:11px; }
+    .metric-value { font:800 clamp(27px,4vw,36px) Manrope,sans-serif; margin:9px 0 3px; letter-spacing:-1px; }
+    .metric-caption { color:var(--muted); font-size:10px; }
+    .risk { display:inline-flex; align-items:center; gap:7px; border-radius:999px; padding:8px 11px; margin-top:12px; font-size:12px; font-weight:700; background:rgba(100,226,210,.1); color:var(--cyan); }
+    .risk-dot { width:7px; height:7px; border-radius:50%; background:currentColor; }
+    .risk-high { color:#fb7185; background:rgba(251,113,133,.11); }
+    .risk-medium { color:#fbbf24; background:rgba(251,191,36,.11); }
+    .risk-low { color:#64e2d2; background:rgba(100,226,210,.1); }
+    .recommendations { margin-top:14px; padding:17px; border:1px solid var(--line); border-radius:16px; background:rgba(255,255,255,.025); }
+    .recommendations h3 { font:700 13px Manrope,sans-serif; margin:0 0 12px; }
+    .rec-list { list-style:none; padding:0; margin:0; display:grid; gap:9px; }
+    .rec-list li { display:flex; align-items:flex-start; gap:9px; color:#cbd6ec; font-size:12px; line-height:1.5; }
+    .rec-list li:before { content:"✓"; color:var(--cyan); font-weight:800; }
+    .charts { margin-top:20px; }
+    .charts-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; padding:20px 24px 24px; }
+    .chart-card { min-width:0; border:1px solid var(--line); background:rgba(255,255,255,.025); border-radius:16px; padding:16px; }
+    .chart-title { color:#dce5fa; font-size:12px; font-weight:700; margin-bottom:12px; }
+    .chart-area { height:190px; position:relative; }
+    .chart-caption { color:var(--muted); font-size:10px; margin-top:9px; }
+    .footer { color:#687795; font-size:11px; text-align:center; padding-top:25px; }
+    @media(max-width:850px) { .layout { grid-template-columns:1fr; } .right-col { grid-template-columns:1fr; } }
+    @media(max-width:560px) {
+      .page { width:min(100% - 24px,1180px); padding-top:19px; }
+      .topbar { margin-bottom:27px; } .status { font-size:10px; padding:8px 10px; }
+      .panel-head { padding:20px 18px 0; } .form-body,.results-content { padding:19px 18px; }
+      .fields,.metrics,.charts-grid { grid-template-columns:1fr; }
+      .charts-grid { padding:17px 18px 19px; }
+      .hero p { font-size:13px; }
+    }
+  </style>
 </head>
-
 <body>
-  <main class="app-shell">
-    <div class="glass-card">
-      <header class="app-header">
-        <h1 class="title">
-          <i class="bi bi-mortarboard-fill me-1" aria-hidden="true"></i>
-          AI Student Academic Performance Prediction
-        </h1>
-        <p class="subtitle">Enter academic indicators to predict performance and get actionable recommendations.</p>
-      </header>
+  <main class="page">
+    <nav class="topbar" aria-label="Main navigation">
+      <div class="brand">
+        <div class="brand-mark"><i class="bi bi-mortarboard-fill"></i></div>
+        <div>StudentIQ<small>Academic insights</small></div>
+      </div>
+      <div class="status"><span class="status-dot"></span> ML prediction system</div>
+    </nav>
 
-      <!-- Form Section -->
-      <section class="section" id="form">
-        <h2 class="section-title">
-          <i class="bi bi-ui-checks-grid" aria-hidden="true"></i>
-          Student Inputs
-        </h2>
+    <header class="hero">
+      <div class="eyebrow">AI-powered student analytics</div>
+      <h1>Understand performance.<br><span style="color:var(--cyan)">Plan what comes next.</span></h1>
+      <p>Enter a few academic indicators to estimate a student's final marks. Review the predicted result, understand the risk category, and get simple suggestions for improvement.</p>
+    </header>
 
-        <form id="predictForm" method="POST" action="/predict" class="row g-3">
-          <div class="col-12 col-md-6">
-            <label for="attendance" class="form-label">Attendance (%)</label>
-            <input
-              type="number"
-              class="form-control"
-              id="attendance"
-              name="attendance"
-              placeholder="e.g., 85"
-              min="0"
-              max="100"
-              step="0.1"
-              required
-            />
-          </div>
-
-          <div class="col-12 col-md-6">
-            <label for="internal" class="form-label">Internal Marks</label>
-            <input
-              type="number"
-              class="form-control"
-              id="internal"
-              name="internal"
-              placeholder="e.g., 24"
-              min="0"
-              step="0.1"
-              required
-            />
-          </div>
-
-          <div class="col-12 col-md-6">
-            <label for="gpa" class="form-label">Previous GPA</label>
-            <input
-              type="number"
-              class="form-control"
-              id="gpa"
-              name="gpa"
-              placeholder="e.g., 7.8"
-              min="0"
-              max="10"
-              step="0.01"
-              required
-            />
-          </div>
-
-          <div class="col-12 col-md-6">
-            <label for="study" class="form-label">Study Hours (per day)</label>
-            <input
-              type="number"
-              class="form-control"
-              id="study"
-              name="study"
-              placeholder="e.g., 3"
-              min="0"
-              step="0.1"
-              required
-            />
-          </div>
-
-          <div class="col-12 d-flex flex-column flex-sm-row gap-2 align-items-sm-center mt-1">
-            <button type="submit" id="submitBtn" class="btn btn-primary px-4">
-              <span class="btn-label">
-                <i class="bi bi-magic me-1" aria-hidden="true"></i>
-                Predict Performance
-              </span>
-            </button>
-            <div class="loading-inline" id="loadingInline" aria-live="polite" aria-busy="true">
-              <span class="spinner" aria-hidden="true"></span>
-              <span>Predicting… please wait</span>
+    <div class="layout">
+      <section class="panel" aria-labelledby="input-title">
+        <div class="panel-head">
+          <h2 class="panel-title" id="input-title"><i class="bi bi-sliders"></i> Student information</h2>
+          <p class="panel-subtitle">Provide the details below to generate a performance estimate.</p>
+        </div>
+        <div class="form-body">
+          <form id="predictForm" method="POST" action="{{ url_for('predict') }}">
+            <div class="fields">
+              <div class="field">
+                <label for="attendance">Attendance <span>0–100%</span></label>
+                <div class="input-wrap"><i class="bi bi-calendar-check"></i><input id="attendance" name="attendance" type="number" min="0" max="100" step="0.1" placeholder="e.g. 85" required value="{{ request.form.get('attendance', '') if request else '' }}"></div>
+              </div>
+              <div class="field">
+                <label for="internal">Internal marks <span>0–100</span></label>
+                <div class="input-wrap"><i class="bi bi-journal-check"></i><input id="internal" name="internal" type="number" min="0" max="100" step="0.1" placeholder="e.g. 24" required value="{{ request.form.get('internal', '') if request else '' }}"></div>
+              </div>
+              <div class="field">
+                <label for="gpa">Previous GPA <span>0–10</span></label>
+                <div class="input-wrap"><i class="bi bi-award"></i><input id="gpa" name="gpa" type="number" min="0" max="10" step="0.01" placeholder="e.g. 7.8" required value="{{ request.form.get('gpa', '') if request else '' }}"></div>
+              </div>
+              <div class="field">
+                <label for="study">Study hours <span>per day</span></label>
+                <div class="input-wrap"><i class="bi bi-clock"></i><input id="study" name="study" type="number" min="0" max="24" step="0.1" placeholder="e.g. 3" required value="{{ request.form.get('study', '') if request else '' }}"></div>
+              </div>
             </div>
-          </div>
-
-          <p class="hint mb-0">
-            Tip: Use realistic values. The system will classify your risk level and suggest improvements.
-          </p>
-        </form>
+            <div class="form-note"><i class="bi bi-info-circle"></i><span>Predictions are estimates based on the patterns learned from the training dataset. They should be used as guidance, not as a guarantee of academic results.</span></div>
+            <button class="submit" type="submit" id="submitBtn"><i class="bi bi-stars"></i> &nbsp;Predict performance</button>
+            <div class="loading" id="loadingInline"><i class="bi bi-arrow-repeat"></i> Analysing academic indicators…</div>
+          </form>
+        </div>
       </section>
 
-      <!-- Results Section -->
-      <section class="section" id="results" {% if prediction is none and not error %}style="display:none;"{% endif %}>
-        <h2 class="section-title">
-          <i class="bi bi-graph-up-arrow" aria-hidden="true"></i>
-          Prediction Results
-        </h2>
-
-        {% if error %}
-          <div class="alert alert-danger mb-3" role="alert">
-            {{ error }}
+      <div class="right-col">
+        <section class="panel" id="results" aria-labelledby="result-title">
+          <div class="panel-head">
+            <h2 class="panel-title" id="result-title"><i class="bi bi-graph-up-arrow"></i> Prediction overview</h2>
+            <p class="panel-subtitle">Your model's estimated outcome and recommended next steps.</p>
           </div>
-        {% endif %}
-
-        <div class="result-grid">
-          <div class="result-tile">
-            <div class="metric">Predicted Marks / GPA</div>
-            <p class="metric-value mb-0" id="predictionValue">{{ prediction }}</p>
-            <div class="hint mb-0 mt-2">This value is generated by your model response.</div>
-          </div>
-
-          <div class="result-tile">
-            <div class="metric">Risk Level</div>
-            <div
-              class="risk-badge"
-              id="riskBadge"
-              data-risk="{{ risk }}"
-              role="status"
-              aria-live="polite"
-            >
-              <span class="risk-dot" aria-hidden="true"></span>
-              <span id="riskText">{{ risk }}</span>
+          {% if error %}
+            <div class="results-content"><div class="alert alert-danger" role="alert">{{ error }}</div></div>
+          {% endif %}
+          {% if prediction is defined and prediction is not none %}
+            <div class="results-content">
+              <div class="metrics">
+                <div class="metric-card">
+                  <div class="metric-label">Predicted final marks</div>
+                  <div class="metric-value">{{ prediction }}</div>
+                  <div class="metric-caption">Estimated score from the ML model</div>
+                </div>
+                <div class="metric-card">
+                  <div class="metric-label">Performance risk</div>
+                  <div class="risk" id="riskBadge" data-risk="{{ risk }}"><span class="risk-dot"></span><span>{{ risk }}</span></div>
+                  <div class="metric-caption" style="margin-top:12px">Based on the predicted marks</div>
+                </div>
+              </div>
+              <div class="recommendations">
+                <h3><i class="bi bi-lightbulb" style="color:var(--cyan)"></i> Suggested actions</h3>
+                <ul class="rec-list">
+                  {% if rec %}
+                    {% if rec is string %}<li>{{ rec }}</li>
+                    {% else %}{% for item in rec %}<li>{{ item }}</li>{% endfor %}{% endif %}
+                  {% else %}
+                    <li>Maintain consistent attendance and study habits.</li>
+                    <li>Review internal assessment feedback regularly.</li>
+                  {% endif %}
+                </ul>
+              </div>
             </div>
-            <div class="hint mb-0 mt-2">
-              High = needs immediate attention, Medium = improve consistency, Low = maintain momentum.
-            </div>
-          </div>
-        </div>
-
-        <div class="result-tile mt-3">
-          <div class="metric mb-2">Recommendations</div>
-          <ul class="rec-list" id="recList">
-            {% if rec %}
-              {% if rec is string %}
-                <li>{{ rec }}</li>
-              {% else %}
-                {% for item in rec %}
-                  <li>{{ item }}</li>
-                {% endfor %}
-              {% endif %}
-            {% else %}
-              <li>Maintain attendance above 85% for better performance stability.</li>
-              <li>Plan daily study blocks and revise weekly to strengthen weak topics.</li>
-              <li>Use internal assessment feedback to improve exam strategy.</li>
+          {% else %}
+            {% if not error %}
+              <div class="empty-state">
+                <div>
+                  <div class="empty-icon"><i class="bi bi-bar-chart-line"></i></div>
+                  <h3>Your results will appear here</h3>
+                  <p>Complete the student information form and select Predict performance to see the model's estimate.</p>
+                </div>
+              </div>
             {% endif %}
-          </ul>
-        </div>
-      </section>
-
-      <!-- Charts Section -->
-      <section class="section" id="charts">
-        <h2 class="section-title">
-          <i class="bi bi-bar-chart-line-fill" aria-hidden="true"></i>
-          Insights Dashboard
-        </h2>
-
-        <div class="row g-3">
-          <div class="col-12 col-lg-6">
-            <div class="chart-card">
-              <div class="metric mb-2">Attendance vs Marks</div>
-              <canvas id="chartAttendance"></canvas>
-              <div class="hint mb-0 mt-2">Placeholder data (replace with real history later).</div>
-            </div>
-          </div>
-          <div class="col-12 col-lg-6">
-            <div class="chart-card">
-              <div class="metric mb-2">Study Hours vs Performance</div>
-              <canvas id="chartStudy"></canvas>
-              <div class="hint mb-0 mt-2">Placeholder data (replace with real history later).</div>
-            </div>
-          </div>
-        </div>
-      </section>
+          {% endif %}
+        </section>
+      </div>
     </div>
+
+    <section class="panel charts" aria-labelledby="charts-title">
+      <div class="panel-head">
+        <h2 class="panel-title" id="charts-title"><i class="bi bi-activity"></i> Academic insights</h2>
+        <p class="panel-subtitle">Illustrative charts showing how study habits and attendance can relate to performance.</p>
+      </div>
+      <div class="charts-grid">
+        <div class="chart-card">
+          <div class="chart-title">Attendance vs. marks</div>
+          <div class="chart-area"><canvas id="chartAttendance" aria-label="Illustrative attendance versus marks chart"></canvas></div>
+          <div class="chart-caption">Illustrative values only — not live dataset analytics.</div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-title">Daily study hours vs. performance</div>
+          <div class="chart-area"><canvas id="chartStudy" aria-label="Illustrative study hours versus performance chart"></canvas></div>
+          <div class="chart-caption">Illustrative values only — not live dataset analytics.</div>
+        </div>
+      </div>
+    </section>
+    <footer class="footer">StudentIQ · Machine Learning Academic Performance Prediction</footer>
   </main>
 
   <script>
-    (function () {
+    (() => {
       const form = document.getElementById("predictForm");
       const submitBtn = document.getElementById("submitBtn");
-      const loadingInline = document.getElementById("loadingInline");
-      const resultsSection = document.getElementById("results");
-      const riskBadge = document.getElementById("riskBadge");
+      const loading = document.getElementById("loadingInline");
+      form.addEventListener("submit", () => {
+        if (!form.checkValidity()) return;
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> &nbsp;Generating prediction…';
+        loading.classList.add("show");
+      });
 
-      function normalizeRisk(raw) {
-        if (!raw) return "";
-        return String(raw).trim().toLowerCase();
+      const risk = document.getElementById("riskBadge");
+      if (risk) {
+        const value = (risk.dataset.risk || "").toLowerCase();
+        if (value.includes("high")) risk.classList.add("risk-high");
+        else if (value.includes("medium")) risk.classList.add("risk-medium");
+        else if (value.includes("low")) risk.classList.add("risk-low");
       }
 
-      function applyRiskStyles() {
-        if (!riskBadge) return;
-        const raw = riskBadge.getAttribute("data-risk") || "";
-        const risk = normalizeRisk(raw);
-
-        riskBadge.classList.remove("risk-high", "risk-medium", "risk-low");
-        if (risk.includes("high")) riskBadge.classList.add("risk-high");
-        else if (risk.includes("med")) riskBadge.classList.add("risk-medium");
-        else if (risk.includes("low")) riskBadge.classList.add("risk-low");
-      }
-
-      applyRiskStyles();
-
-      if (form) {
-        form.addEventListener("submit", function () {
-          if (submitBtn) submitBtn.setAttribute("disabled", "disabled");
-          if (loadingInline) loadingInline.classList.add("show");
-
-          // If you handle POST via standard server render, the page will reload with results.
-          // If you later switch to fetch/AJAX, you can reveal resultsSection without reload.
-          if (resultsSection) resultsSection.style.display = "none";
-        });
-      }
-
-      // Chart.js (placeholder data)
-      const commonOptions = {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: { display: false },
-          tooltip: { enabled: true }
-        },
+      const common = {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false }, tooltip: { enabled: true } },
         scales: {
-          x: {
-            ticks: { color: "rgba(238,242,255,0.75)" },
-            grid: { color: "rgba(255,255,255,0.07)" }
-          },
-          y: {
-            ticks: { color: "rgba(238,242,255,0.75)" },
-            grid: { color: "rgba(255,255,255,0.07)" }
-          }
+          x: { ticks: { color: "#9aa8c7", font: { size: 10 } }, grid: { color: "rgba(163,180,220,.08)" } },
+          y: { beginAtZero: true, max: 100, ticks: { color: "#9aa8c7", font: { size: 10 } }, grid: { color: "rgba(163,180,220,.08)" } }
         }
       };
-
-      const attendanceCtx = document.getElementById("chartAttendance");
-      if (attendanceCtx) {
-        new Chart(attendanceCtx, {
-          type: "line",
-          data: {
-            labels: ["60%", "70%", "75%", "80%", "85%", "90%", "95%"],
-            datasets: [{
-              label: "Marks",
-              data: [52, 58, 62, 68, 75, 81, 86],
-              borderColor: "rgba(106,230,255,0.95)",
-              backgroundColor: "rgba(106,230,255,0.14)",
-              pointBackgroundColor: "rgba(106,230,255,0.95)",
-              pointRadius: 3,
-              tension: 0.35,
-              fill: true
-            }]
-          },
-          options: commonOptions
-        });
-      }
-
-      const studyCtx = document.getElementById("chartStudy");
-      if (studyCtx) {
-        new Chart(studyCtx, {
-          type: "bar",
-          data: {
-            labels: ["0.5h", "1h", "2h", "3h", "4h", "5h"],
-            datasets: [{
-              label: "Performance",
-              data: [50, 56, 65, 74, 82, 86],
-              borderRadius: 10,
-              backgroundColor: [
-                "rgba(139,92,246,0.35)",
-                "rgba(139,92,246,0.45)",
-                "rgba(139,92,246,0.55)",
-                "rgba(139,92,246,0.65)",
-                "rgba(139,92,246,0.75)",
-                "rgba(139,92,246,0.85)"
-              ],
-              borderColor: "rgba(139,92,246,0.95)"
-            }]
-          },
-          options: commonOptions
-        });
-      }
+      const attendance = document.getElementById("chartAttendance");
+      if (attendance) new Chart(attendance, {
+        type: "line",
+        data: { labels: ["60%", "70%", "75%", "80%", "85%", "90%", "95%"],
+          datasets: [{ data: [52, 58, 62, 68, 75, 81, 86], borderColor: "#64e2d2",
+            backgroundColor: "rgba(100,226,210,.12)", pointBackgroundColor: "#64e2d2",
+            pointRadius: 3, tension: .38, fill: true }] },
+        options: common
+      });
+      const study = document.getElementById("chartStudy");
+      if (study) new Chart(study, {
+        type: "bar",
+        data: { labels: ["0.5h", "1h", "2h", "3h", "4h", "5h"],
+          datasets: [{ data: [50, 56, 65, 74, 82, 86], backgroundColor: "rgba(124,156,255,.65)", borderRadius: 7, maxBarThickness: 34 }] },
+        options: common
+      });
     })();
   </script>
 </body>
 </html>
-
